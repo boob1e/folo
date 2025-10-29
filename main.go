@@ -4,11 +4,11 @@ import (
 	"log"
 
 	"folo/database"
-	"folo/handlers"
+	"folo/ordering"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/gofiber/fiber/v3/middleware/recover"
 )
 
 func main() {
@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// Run auto migrations
-	if err := database.AutoMigrate(&handlers.Basket{}); err != nil {
+	if err := database.AutoMigrate(&ordering.Basket{}); err != nil {
 		log.Fatal("Failed to run migrations:", err)
 	}
 
@@ -31,9 +31,10 @@ func main() {
 
 	api := app.Group("/api")
 
-	handlers.RegisterBasketsRoutes(api)
+	ordering.RegisterBasketsRoutes(api)
+	ordering.RegisterOrderRoutes(api)
 
-	app.Get("/health", func(c *fiber.Ctx) error {
+	app.Get("/health", func(c fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"status": "ok",
 		})

@@ -1,11 +1,10 @@
-package handlers
+package ordering
 
 import (
+	"folo/database"
 	"time"
 
-	"folo/database"
-
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
@@ -33,7 +32,7 @@ func RegisterBasketsRoutes(router fiber.Router) {
 }
 
 // GetBaskets returns all baskets
-func GetBaskets(c *fiber.Ctx) error {
+func GetBaskets(c fiber.Ctx) error {
 	baskets := []Basket{
 		{
 			ID:          1,
@@ -57,7 +56,7 @@ func GetBaskets(c *fiber.Ctx) error {
 	})
 }
 
-func GetBasket(c *fiber.Ctx) error {
+func GetBasket(c fiber.Ctx) error {
 	id := c.Params("id")
 
 	basket := Basket{
@@ -76,10 +75,10 @@ func GetBasket(c *fiber.Ctx) error {
 }
 
 // CreateBasket creates a new basket
-func CreateBasket(c *fiber.Ctx) error {
+func CreateBasket(c fiber.Ctx) error {
 	basket := new(Basket)
 
-	if err := c.BodyParser(basket); err != nil {
+	if err := c.Bind().Body(basket); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
 			"error":   "Invalid request body",
@@ -101,11 +100,11 @@ func CreateBasket(c *fiber.Ctx) error {
 }
 
 // UpdateBasket updates an existing basket
-func UpdateBasket(c *fiber.Ctx) error {
+func UpdateBasket(c fiber.Ctx) error {
 	id := c.Params("id")
 	basket := new(Basket)
 
-	if err := c.BodyParser(basket); err != nil {
+	if err := c.Bind().Body(basket); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
 			"error":   "Invalid request body",
@@ -121,7 +120,7 @@ func UpdateBasket(c *fiber.Ctx) error {
 }
 
 // DeleteBasket deletes a basket
-func DeleteBasket(c *fiber.Ctx) error {
+func DeleteBasket(c fiber.Ctx) error {
 	id := c.Params("id")
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
