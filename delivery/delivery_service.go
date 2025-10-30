@@ -11,6 +11,11 @@ import (
 	"github.com/google/uuid"
 )
 
+// DeliveryService defines the interface for delivery operations
+type DeliveryService interface {
+	RequestQuote(ctx context.Context, params DeliveryQuoteParams) (CreateQuoteResponse, error)
+}
+
 // DoorDashService handles DoorDash API interactions
 type DoorDashService struct {
 	config DoorDashConfig

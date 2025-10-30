@@ -9,6 +9,15 @@ type Basket struct {
 	BasketItems []BasketItem `json:"basketItems"`
 }
 
+// CalculateTotal calculates the total price of a basket
+func (b *Basket) CalculateTotal() int64 {
+	var total int64 = 0
+	for _, item := range b.BasketItems {
+		total += int64(item.MenuItem.Price * item.Quantity)
+	}
+	return total
+}
+
 // BasketItem represents an item in a basket
 type BasketItem struct {
 	gorm.Model

@@ -8,22 +8,16 @@ import (
 	"folo/delivery"
 )
 
-// DeliveryService defines the interface for delivery operations
-type DeliveryService interface {
-	RequestQuote(ctx context.Context, params delivery.DeliveryQuoteParams) (*delivery.CreateQuoteResponse, error)
-}
-
 // OrderService handles order business logic
 type OrderService interface {
 	CreateOrder(req OrderReq) (*Order, int64, error)
-	CalculateTotal(basket *Basket) int64
 }
 
 type orderService struct {
-	orderRepo       OrderRepository
-	basketRepo      BasketRepository
+	orderRepo        OrderRepository
+	basketRepo       BasketRepository
 	deliveryDataRepo DeliveryDataRepository
-	deliveryService DeliveryService
+	deliveryService  delivery.DeliveryService
 }
 
 // NewOrderService creates a new order service
@@ -31,13 +25,13 @@ func NewOrderService(
 	orderRepo OrderRepository,
 	basketRepo BasketRepository,
 	deliveryDataRepo DeliveryDataRepository,
-	deliveryService DeliveryService,
+	deliveryService delivery.DeliveryService,
 ) OrderService {
 	return &orderService{
-		orderRepo:       orderRepo,
-		basketRepo:      basketRepo,
+		orderRepo:        orderRepo,
+		basketRepo:       basketRepo,
 		deliveryDataRepo: deliveryDataRepo,
-		deliveryService: deliveryService,
+		deliveryService:  deliveryService,
 	}
 }
 
@@ -50,7 +44,7 @@ func (s *orderService) CreateOrder(req OrderReq) (*Order, int64, error) {
 	}
 
 	// Calculate order total
-	orderTotal := s.CalculateTotal(basket)
+	orderTotal := basket.CalculateTotal()
 
 	// If delivery order, launch async goroutine to get quote from DoorDash
 	if req.IsDelivery() {
@@ -83,15 +77,6 @@ func (s *orderService) CreateOrder(req OrderReq) (*Order, int64, error) {
 	}
 
 	return order, orderTotal, nil
-}
-
-// CalculateTotal calculates the total price of a basket
-func (s *orderService) CalculateTotal(basket *Basket) int64 {
-	var total int64 = 0
-	for _, item := range basket.BasketItems {
-		total += int64(item.MenuItem.Price * item.Quantity)
-	}
-	return total
 }
 
 // handleDeliveryQuote handles the async delivery quote request
