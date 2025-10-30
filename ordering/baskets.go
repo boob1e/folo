@@ -40,7 +40,7 @@ func RegisterBasketsRoutes(router fiber.Router) {
 
 	baskets.Get("/", GetBaskets)
 	baskets.Get("/:id", GetBasket)
-	baskets.Post("/", CreateBasket)
+	baskets.Post("/", CreateBasketWithItems)
 	baskets.Put("/:id", UpdateBasket)
 	baskets.Delete("/:id", DeleteBasket)
 }
@@ -51,6 +51,7 @@ func GetBaskets(c fiber.Ctx) error {
 	baskets, err := gorm.G[Basket](database.DB).
 		Preload("BasketItems", nil).
 		Preload("BasketItems.MenuItem", nil).
+		Limit(10).
 		Find(ctx)
 	if err != nil {
 		log.Printf("error retrieving all baskets")
@@ -83,8 +84,8 @@ func GetBasket(c fiber.Ctx) error {
 	})
 }
 
-// CreateBasket creates a new basket
-func CreateBasket(c fiber.Ctx) error {
+// CreateBasketWithItems creates a new basket
+func CreateBasketWithItems(c fiber.Ctx) error {
 	basket := new(Basket)
 
 	if err := c.Bind().Body(basket); err != nil {
@@ -95,6 +96,21 @@ func CreateBasket(c fiber.Ctx) error {
 	}
 
 	//TODO: move to service layer
+	if err := database.DB.Create(basket).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"error":   "Failed to create basket",
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
+		"data":    basket,
+	})
+}
+
+func CreateEmptyBasket(c fiber.Ctx) error {
+	basket := new(Basket)
 	if err := database.DB.Create(basket).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
