@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"folo/database"
+	"folo/delivery"
 	"folo/ordering"
 
 	"github.com/gofiber/fiber/v3"
@@ -22,6 +23,28 @@ func main() {
 		log.Fatal("Failed to run migrations:", err)
 	}
 
+	// Initialize repositories
+	orderRepo := ordering.NewOrderRepository(database.DB)
+	basketRepo := ordering.NewBasketRepository(database.DB)
+	deliveryDataRepo := ordering.NewDeliveryDataRepository(database.DB)
+
+	// Initialize delivery service
+	// TODO: Load these from environment variables or config file
+	doorDashConfig := delivery.DoorDashConfig{
+		DeveloperID:   "", // Set from env: os.Getenv("DOORDASH_DEVELOPER_ID")
+		KeyID:         "", // Set from env: os.Getenv("DOORDASH_KEY_ID")
+		SigningSecret: "", // Set from env: os.Getenv("DOORDASH_SIGNING_SECRET")
+	}
+	doorDashService := delivery.NewDoorDashService(doorDashConfig)
+
+	// Initialize services
+	orderService := ordering.NewOrderService(orderRepo, basketRepo, deliveryDataRepo, doorDashService)
+
+	// Initialize handlers
+	orderHandler := ordering.NewOrderHandler(orderService)
+	basketHandler := ordering.NewBasketHandler(basketRepo)
+
+	// Initialize Fiber app
 	app := fiber.New(fiber.Config{
 		AppName: "Folo API v1.0.0",
 	})
@@ -31,8 +54,9 @@ func main() {
 
 	api := app.Group("/api")
 
-	ordering.RegisterBasketsRoutes(api)
-	ordering.RegisterOrderRoutes(api)
+	// Register routes with handlers
+	ordering.RegisterBasketsRoutes(api, basketHandler)
+	ordering.RegisterOrderRoutes(api, orderHandler)
 
 	app.Get("/health", func(c fiber.Ctx) error {
 		return c.JSON(fiber.Map{
