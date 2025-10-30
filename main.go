@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"folo/database"
 	"folo/delivery"
@@ -31,9 +32,9 @@ func main() {
 	// Initialize delivery service
 	// TODO: Load these from environment variables or config file
 	doorDashConfig := delivery.DoorDashConfig{
-		DeveloperID:   "", // Set from env: os.Getenv("DOORDASH_DEVELOPER_ID")
-		KeyID:         "", // Set from env: os.Getenv("DOORDASH_KEY_ID")
-		SigningSecret: "", // Set from env: os.Getenv("DOORDASH_SIGNING_SECRET")
+		DeveloperID:   os.Getenv("DOORDASH_DEVELOPER_ID"),
+		KeyID:         os.Getenv("DOORDASH_KEY_ID"),
+		SigningSecret: os.Getenv("DOORDASH_SIGNING_SECRET"),
 	}
 	doorDashService := delivery.NewDoorDashService(doorDashConfig)
 

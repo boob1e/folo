@@ -37,13 +37,11 @@ func NewOrderService(
 
 // CreateOrder creates a new order from a basket
 func (s *orderService) CreateOrder(req OrderReq) (*Order, int64, error) {
-	// Fetch basket with all items and menu details
 	basket, err := s.basketRepo.FindByIDWithItems(req.BasketId)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// Calculate order total
 	orderTotal := basket.CalculateTotal()
 
 	// If delivery order, launch async goroutine to get quote from DoorDash

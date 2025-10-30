@@ -53,16 +53,6 @@ type DoorDashConfig struct {
 	SigningSecret string `json:"signing_secret"`
 }
 
-// QuoteResult wraps the result of a delivery quote request for channel communication.
-// It contains either a successful response or an error.
-type QuoteResult struct {
-	// Response contains the successful quote response from DoorDash (nil if error occurred)
-	Response *CreateQuoteResponse
-
-	// Err contains any error that occurred during the quote request (nil if successful)
-	Err error
-}
-
 // DeliveryQuoteParams contains all the parameters needed to request a delivery quote.
 type DeliveryQuoteParams struct {
 	// PickupAddress is the restaurant/store address where the order will be picked up

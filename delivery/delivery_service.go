@@ -3,17 +3,21 @@ package delivery
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
 // DeliveryService defines the interface for delivery operations
 type DeliveryService interface {
-	RequestQuote(ctx context.Context, params DeliveryQuoteParams) (CreateQuoteResponse, error)
+	RequestQuote(ctx context.Context, params DeliveryQuoteParams) (*CreateQuoteResponse, error)
 }
 
 // DoorDashService handles DoorDash API interactions
@@ -28,6 +32,43 @@ func NewDoorDashService(config DoorDashConfig) *DoorDashService {
 		config: config,
 		client: &http.Client{},
 	}
+}
+
+// generateJWT creates a JWT token for DoorDash API authentication
+func (s *DoorDashService) generateJWT() (string, error) {
+	// Decode the base64-encoded signing secret
+	decodedSecret, err := base64.RawURLEncoding.DecodeString(s.config.SigningSecret)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode signing secret: %w", err)
+	}
+
+	// Set token expiration to 5 minutes from now
+	now := time.Now()
+	expirationTime := now.Add(5 * time.Minute)
+
+	// Create the JWT claims with DoorDash required fields
+	claims := jwt.MapClaims{
+		"aud": "doordash",
+		"iss": s.config.DeveloperID,
+		"kid": s.config.KeyID,
+		"exp": expirationTime.Unix(),
+		"iat": now.Unix(),
+	}
+
+	// Create token with custom header
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Add custom DoorDash header
+	token.Header["dd-ver"] = "DD-JWT-V1"
+	token.Header["algorithm"] = "HS256"
+
+	// Sign the token with the decoded secret
+	tokenString, err := token.SignedString(decodedSecret)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign JWT: %w", err)
+	}
+
+	return tokenString, nil
 }
 
 // RequestQuote creates a delivery quote with DoorDash Drive API.
@@ -65,12 +106,16 @@ func (s *DoorDashService) RequestQuote(ctx context.Context, params DeliveryQuote
 		return nil, err
 	}
 
+	// Generate JWT for authentication
+	jwtToken, err := s.generateJWT()
+	if err != nil {
+		log.Printf("error generating JWT: %s", err.Error())
+		return nil, err
+	}
+
 	// Set required headers
 	req.Header.Set("Content-Type", "application/json")
-	// TODO: Add authentication headers (DD-DEVELOPER-ID, DD-KEY-ID, Authorization)
-	// req.Header.Set("DD-DEVELOPER-ID", s.config.DeveloperID)
-	// req.Header.Set("DD-KEY-ID", s.config.KeyID)
-	// req.Header.Set("Authorization", s.generateSignature(req))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwtToken))
 
 	// Make the HTTP request
 	res, err := s.client.Do(req)
@@ -95,18 +140,4 @@ func (s *DoorDashService) RequestQuote(ctx context.Context, params DeliveryQuote
 	}
 
 	return createQuoteRes, nil
-}
-
-// RequestQuoteAsync creates a delivery quote with DoorDash Drive API asynchronously.
-// This function is designed to be called in a goroutine and communicates results via a channel.
-// It respects context cancellation and sends results to resultChan when complete.
-func (s *DoorDashService) RequestQuoteAsync(ctx context.Context, params DeliveryQuoteParams, resultChan chan<- QuoteResult) {
-	defer close(resultChan)
-
-	response, err := s.RequestQuote(ctx, params)
-
-	resultChan <- QuoteResult{
-		Response: response,
-		Err:      err,
-	}
 }
