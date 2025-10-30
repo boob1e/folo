@@ -19,17 +19,16 @@ type Basket struct {
 
 type BasketItem struct {
 	gorm.Model
-	ID         uint `gorm:"primaryKey" json:"id"`
-	BasketID   uint
-	Basket     Basket
-	MenuItemID uint
+	BasketID uint `json:"-"`
+	// Basket     Basket
+	MenuItemID uint `json:"-"`
 	// MenuItem   `gorm:"embedded"`
 	MenuItem MenuItem
+	Quantity int
 }
 
 type MenuItem struct {
 	gorm.Model
-	ID    uint   `gorm:"primaryKey" json:"id"`
 	SKU   int    `gorm:"column:sku;not null" json:"sku"`
 	Name  string `gorm:"column:name;not null" json:"name"`
 	Price int    `gorm:"column:price;not null" json:"price"`
@@ -49,7 +48,10 @@ func RegisterBasketsRoutes(router fiber.Router) {
 // GetBaskets returns all baskets
 func GetBaskets(c fiber.Ctx) error {
 	ctx := context.Background()
-	baskets, err := gorm.G[Basket](database.DB).Find(ctx)
+	baskets, err := gorm.G[Basket](database.DB).
+		Preload("BasketItems", nil).
+		Preload("BasketItems.MenuItem", nil).
+		Find(ctx)
 	if err != nil {
 		log.Printf("error retrieving all baskets")
 	}
@@ -66,7 +68,10 @@ func GetBasket(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).Err()
 	}
 	ctx := context.Background()
-	basket, err := gorm.G[Basket](database.DB).Where("id = ?", uint(id)).First(ctx)
+	basket, err := gorm.G[Basket](database.DB).
+		Preload("BasketItem", nil).
+		Where("id = ?", uint(id)).
+		First(ctx)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).Err()
 	}
