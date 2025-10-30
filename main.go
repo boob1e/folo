@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// Run auto migrations
-	if err := database.AutoMigrate(&ordering.Basket{}); err != nil {
+	if err := database.AutoMigrate(&ordering.Basket{}, &ordering.BasketItem{}, &ordering.MenuItem{}, &ordering.Order{}); err != nil {
 		log.Fatal("Failed to run migrations:", err)
 	}
 

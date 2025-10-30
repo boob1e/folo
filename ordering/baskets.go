@@ -1,8 +1,10 @@
 package ordering
 
 import (
+	"context"
 	"folo/database"
-	"time"
+	"log"
+	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
@@ -10,14 +12,27 @@ import (
 
 // Basket represents a basket entity
 type Basket struct {
-	ID          uint           `gorm:"primaryKey" json:"id"`
-	SKU         int            `gorm:"column:sku;not null" json:"sku"`
-	Name        string         `gorm:"column:name;size:255;not null" json:"name"`
-	Description string         `gorm:"column:description;type:text" json:"description"`
-	Items       int            `gorm:"column:items;default:0" json:"items"`
-	CreatedAt   time.Time      `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt   time.Time      `gorm:"column:updated_at" json:"updated_at"`
-	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+	gorm.Model
+	Description string       `gorm:"column:description;type:text" json:"description"`
+	BasketItems []BasketItem `json:"basketItems"`
+}
+
+type BasketItem struct {
+	gorm.Model
+	ID         uint `gorm:"primaryKey" json:"id"`
+	BasketID   uint
+	Basket     Basket
+	MenuItemID uint
+	// MenuItem   `gorm:"embedded"`
+	MenuItem MenuItem
+}
+
+type MenuItem struct {
+	gorm.Model
+	ID    uint   `gorm:"primaryKey" json:"id"`
+	SKU   int    `gorm:"column:sku;not null" json:"sku"`
+	Name  string `gorm:"column:name;not null" json:"name"`
+	Price int    `gorm:"column:price;not null" json:"price"`
 }
 
 // RegisterBasketsRoutes sets up all basket-related routes
@@ -33,23 +48,11 @@ func RegisterBasketsRoutes(router fiber.Router) {
 
 // GetBaskets returns all baskets
 func GetBaskets(c fiber.Ctx) error {
-	baskets := []Basket{
-		{
-			ID:          1,
-			SKU:         12345,
-			Name:        "Shopping Basket",
-			Description: "My shopping basket",
-			Items:       5,
-		},
-		{
-			ID:          2,
-			SKU:         67890,
-			Name:        "Wishlist",
-			Description: "Items I want to buy later",
-			Items:       12,
-		},
+	ctx := context.Background()
+	baskets, err := gorm.G[Basket](database.DB).Find(ctx)
+	if err != nil {
+		log.Printf("error retrieving all baskets")
 	}
-
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"success": true,
 		"data":    baskets,
@@ -57,14 +60,15 @@ func GetBaskets(c fiber.Ctx) error {
 }
 
 func GetBasket(c fiber.Ctx) error {
-	id := c.Params("id")
-
-	basket := Basket{
-		ID:          1,
-		SKU:         12345,
-		Name:        "Shopping Basket",
-		Description: "My shopping basket",
-		Items:       5,
+	idParam := c.Params("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).Err()
+	}
+	ctx := context.Background()
+	basket, err := gorm.G[Basket](database.DB).Where("id = ?", uint(id)).First(ctx)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).Err()
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -85,7 +89,7 @@ func CreateBasket(c fiber.Ctx) error {
 		})
 	}
 
-	// Create basket in database
+	//TODO: move to service layer
 	if err := database.DB.Create(basket).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,

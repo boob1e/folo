@@ -12,6 +12,7 @@ type Order struct {
 	CreatedAt   time.Time
 	OrderStatus string
 	IsDelivery  bool
+	BasketID    uint
 	Basket      Basket
 }
 
