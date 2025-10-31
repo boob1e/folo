@@ -10,10 +10,10 @@ type Basket struct {
 }
 
 // CalculateTotal calculates the total price of a basket
-func (b *Basket) CalculateTotal() int64 {
-	var total int64 = 0
+func (b *Basket) CalculateTotal() int {
+	var total int = 0
 	for _, item := range b.BasketItems {
-		total += int64(item.MenuItem.Price * item.Quantity)
+		total += int(item.MenuItem.Price * item.Quantity)
 	}
 	return total
 }

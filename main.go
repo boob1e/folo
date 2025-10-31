@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -30,15 +31,13 @@ func main() {
 	deliveryDataRepo := ordering.NewDeliveryDataRepository(database.DB)
 
 	// Initialize delivery service
-	// TODO: Load these from environment variables or config file
+	godotenv.Load()
 	doorDashConfig := delivery.DoorDashConfig{
 		DeveloperID:   os.Getenv("DOORDASH_DEVELOPER_ID"),
 		KeyID:         os.Getenv("DOORDASH_KEY_ID"),
 		SigningSecret: os.Getenv("DOORDASH_SIGNING_SECRET"),
 	}
 	doorDashService := delivery.NewDoorDashService(doorDashConfig)
-
-	// Initialize services
 	orderService := ordering.NewOrderService(orderRepo, basketRepo, deliveryDataRepo, doorDashService)
 
 	// Initialize handlers

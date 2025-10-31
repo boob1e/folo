@@ -21,6 +21,7 @@ type Order struct {
 	IsDelivery  bool
 	BasketID    uint `json:"-"`
 	Basket      Basket
+	Subtotal    int
 }
 
 // DeliveryStatus represents the current status of a delivery
@@ -51,6 +52,7 @@ type DeliveryData struct {
 	gorm.Model
 	Address     string
 	PhoneNumber string
+	OrderID     uint
 	Order       Order
 }
 

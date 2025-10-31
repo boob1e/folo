@@ -74,11 +74,14 @@ func (s *DoorDashService) generateJWT() (string, error) {
 // RequestQuote creates a delivery quote with DoorDash Drive API.
 // This is a synchronous method that can be called from a goroutine.
 func (s *DoorDashService) RequestQuote(ctx context.Context, params DeliveryQuoteParams) (*CreateQuoteResponse, error) {
+	log.Printf("entered goroutine call")
 	// Check if context is already cancelled before starting
 	select {
 	case <-ctx.Done():
+		log.Printf("triggered done case")
 		return nil, ctx.Err()
 	default:
+		log.Printf("triggered default case")
 	}
 
 	// Prepare the request payload
@@ -125,6 +128,14 @@ func (s *DoorDashService) RequestQuote(ctx context.Context, params DeliveryQuote
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != http.StatusOK {
+		bodyReader, _ := io.ReadAll(res.Body)
+		log.Printf("DoorDash API error: status=%d, body=%s", res.StatusCode,
+			string(bodyReader))
+		return nil, fmt.Errorf("doordash API returned status %d: %s", res.StatusCode,
+			string(bodyReader))
+	}
+
 	// Read response body
 	bodyReader, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -139,5 +150,6 @@ func (s *DoorDashService) RequestQuote(ctx context.Context, params DeliveryQuote
 		return nil, err
 	}
 
+	log.Printf("created quote with id: %v", createQuoteReq.ExternalDeliveryID)
 	return createQuoteRes, nil
 }

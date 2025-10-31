@@ -27,7 +27,7 @@ func (h *OrderHandler) CreateOrder(c fiber.Ctx) error {
 		})
 	}
 
-	order, total, err := h.orderService.CreateOrder(*or)
+	order, err := h.orderService.CreateOrder(*or)
 	if err != nil {
 		// Check specific error types
 		if err.Error() == "record not found" {
@@ -43,7 +43,7 @@ func (h *OrderHandler) CreateOrder(c fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message":     "order created successfully",
 		"order_id":    order.ID,
-		"total":       total,
+		"total":       order.Subtotal,
 		"is_delivery": order.IsDelivery,
 		"status":      order.OrderStatus,
 	})

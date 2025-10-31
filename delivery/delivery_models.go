@@ -19,7 +19,7 @@ type CreateQuoteRequest struct {
 	DropoffPhoneNumber string `json:"dropoff_phone_number" binding:"required"`
 
 	// OrderValue is the order value in cents (e.g., $20.00 = 2000)
-	OrderValue int64 `json:"order_value" binding:"required,min=0"`
+	OrderValue int `json:"order_value" binding:"required,min=0"`
 }
 
 // CreateQuoteResponse represents the response from DoorDash Drive API after creating a delivery quote.
@@ -38,6 +38,11 @@ type CreateQuoteResponse struct {
 
 	// ExpiresAt is the ISO 8601 timestamp when this quote expires
 	ExpiresAt string `json:"expires_at"`
+}
+
+type QuoteResult struct {
+	Response *CreateQuoteResponse
+	Error    error
 }
 
 // DoorDashConfig holds the authentication credentials for DoorDash Drive API.
@@ -68,5 +73,5 @@ type DeliveryQuoteParams struct {
 	DropoffPhoneNumber string
 
 	// OrderValue is the order total in cents (e.g., $20.00 = 2000)
-	OrderValue int64
+	OrderValue int
 }
