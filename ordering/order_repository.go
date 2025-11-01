@@ -1,6 +1,8 @@
 package ordering
 
 import (
+	"folo/delivery"
+
 	"gorm.io/gorm"
 )
 
@@ -39,9 +41,9 @@ func (r *orderRepository) Update(order *Order) error {
 
 // DeliveryDataRepository handles database operations for delivery data
 type DeliveryDataRepository interface {
-	Create(deliveryData *DeliveryData) error
-	FindByOrderID(orderID uint) (*DeliveryData, error)
-	Update(deliveryData *DeliveryData) error
+	Create(deliveryData *delivery.DeliveryData) error
+	FindByOrderID(orderID uint) (*delivery.DeliveryData, error)
+	Update(deliveryData *delivery.DeliveryData) error
 }
 
 type deliveryDataRepository struct {
@@ -54,18 +56,18 @@ func NewDeliveryDataRepository(db *gorm.DB) DeliveryDataRepository {
 }
 
 // Create creates delivery data in the database
-func (r *deliveryDataRepository) Create(deliveryData *DeliveryData) error {
+func (r *deliveryDataRepository) Create(deliveryData *delivery.DeliveryData) error {
 	return r.db.Create(deliveryData).Error
 }
 
 // FindByOrderID finds delivery data by order ID
-func (r *deliveryDataRepository) FindByOrderID(orderID uint) (*DeliveryData, error) {
-	var deliveryData DeliveryData
+func (r *deliveryDataRepository) FindByOrderID(orderID uint) (*delivery.DeliveryData, error) {
+	var deliveryData delivery.DeliveryData
 	err := r.db.Where("order_id = ?", orderID).First(&deliveryData).Error
 	return &deliveryData, err
 }
 
 // Update updates existing delivery data
-func (r *deliveryDataRepository) Update(deliveryData *DeliveryData) error {
+func (r *deliveryDataRepository) Update(deliveryData *delivery.DeliveryData) error {
 	return r.db.Save(deliveryData).Error
 }

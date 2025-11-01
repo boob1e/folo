@@ -89,10 +89,10 @@ func (s *orderService) CreateOrder(req OrderReq) (*Order, error) {
 }
 
 func (s *orderService) addDeliveryToOrder(result *delivery.QuoteResult, order *Order, req OrderReq) {
-	deliveryData := &DeliveryData{
+	deliveryData := &delivery.DeliveryData{
 		Address:     req.DeliveryData.Address,
 		PhoneNumber: req.DeliveryData.PhoneNumber,
-		Order:       *order,
+		OrderID:     order.ID,
 	}
 
 	if err := s.deliveryDataRepo.Create(deliveryData); err != nil {

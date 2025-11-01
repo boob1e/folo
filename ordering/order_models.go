@@ -42,7 +42,7 @@ const (
 
 // DeliveryOrder represents an order with delivery information
 type DeliveryOrder struct {
-	DeliveryData   DeliveryData
+	DeliveryData   delivery.DeliveryData
 	DeliveryStatus DeliveryStatus
 	Order          Order
 }
@@ -66,7 +66,7 @@ const (
 type OrderReq struct {
 	BasketId     uint
 	PaymentType  PaymentType
-	DeliveryData *DeliveryData
+	DeliveryData *delivery.DeliveryData
 }
 
 // IsDelivery checks if the order is a delivery order
