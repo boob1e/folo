@@ -1,0 +1,11 @@
+POST http://localhost:3000/api/orders/submit HTTP/1.1
+content-type: application/json
+
+{
+    "basketId": 1,
+    "paymentType": "Cash",
+    "deliveryData": {
+        "address": "345 Spear St, San Francisco, CA 94105",
+        "phoneNumber": "+18773934448"
+    }
+}

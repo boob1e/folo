@@ -37,6 +37,7 @@ func (h *OrderHandler) CreateOrder(c fiber.Ctx) error {
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "failed to create order",
+			"order": order,
 		})
 	}
 

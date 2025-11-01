@@ -1,5 +1,7 @@
 package delivery
 
+import "gorm.io/gorm"
+
 // CreateQuoteRequest represents a bare minimum request to create a delivery quote with DoorDash Drive API.
 // All fields are required by the DoorDash Drive API.
 type CreateQuoteRequest struct {
@@ -74,4 +76,13 @@ type DeliveryQuoteParams struct {
 
 	// OrderValue is the order total in cents (e.g., $20.00 = 2000)
 	OrderValue int
+}
+
+// DeliveryData contains delivery address and contact information
+type DeliveryData struct {
+	gorm.Model
+	Address     string
+	PhoneNumber string
+	OrderID     uint
+	// Order       Order // this would cause circ dep, use hasOne vs this belongsTo relation
 }

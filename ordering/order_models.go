@@ -1,6 +1,10 @@
 package ordering
 
-import "gorm.io/gorm"
+import (
+	"folo/delivery"
+
+	"gorm.io/gorm"
+)
 
 // OrderStatus represents the current status of an order
 type OrderStatus string
@@ -17,11 +21,12 @@ const (
 // Order represents a customer order
 type Order struct {
 	gorm.Model
-	OrderStatus OrderStatus
-	IsDelivery  bool
-	BasketID    uint `json:"-"`
-	Basket      Basket
-	Subtotal    int
+	OrderStatus  OrderStatus
+	IsDelivery   bool
+	BasketID     uint `json:"-"`
+	Basket       Basket
+	Subtotal     int
+	DeliveryData delivery.DeliveryData
 }
 
 // DeliveryStatus represents the current status of a delivery
@@ -45,15 +50,6 @@ type DeliveryOrder struct {
 // UpdateStatus updates the delivery status
 func (do *DeliveryOrder) UpdateStatus(deliveryStatus DeliveryStatus) {
 	do.DeliveryStatus = deliveryStatus
-}
-
-// DeliveryData contains delivery address and contact information
-type DeliveryData struct {
-	gorm.Model
-	Address     string
-	PhoneNumber string
-	OrderID     uint
-	Order       Order
 }
 
 // PaymentType represents the payment method used
