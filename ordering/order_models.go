@@ -4,6 +4,8 @@ import (
 	"folo/delivery"
 
 	"gorm.io/gorm"
+	"time"
+	"payment"
 )
 
 // OrderStatus represents the current status of an order
@@ -61,12 +63,22 @@ const (
 	Gift   PaymentType = "Gift"
 	Crypto PaymentType = "Crypto"
 )
+// DeliveryData contains delivery address and contact information
+type DeliveryData struct {
+	gorm.Model
+	Address     string
+	PhoneNumber string
+	OrderID     uint
+	Order       Order
+}
+
 
 // OrderReq represents the request body for creating an order
 type OrderReq struct {
 	BasketId     uint
 	PaymentType  PaymentType
 	DeliveryData *delivery.DeliveryData
+	PaymentData *PaymentData
 }
 
 // IsDelivery checks if the order is a delivery order

@@ -80,7 +80,7 @@ func (s *orderService) CreateOrder(req OrderReq) (*Order, error) {
 	}
 
 	// Process payment for all orders (pickup and delivery)
-	err = processOrderWithPayment(order)
+	err = processOrderWithPayment(order, *req.PaymentData)
 	if err != nil {
 		log.Printf("error paying for order: %v", err)
 	}
@@ -128,9 +128,10 @@ func (s *orderService) handleDeliveryQuote(req OrderReq, orderTotal int, resultC
 	}
 }
 
-func processOrderWithPayment(o *Order) error {
+func processOrderWithPayment(o *Order, p *payment.PaymentData) error {
 	pg := payment.NewPaymentGateway()
-	payResult := pg.ProcessPayment("123")
+
+	payResult := pg.ProcessPayment(p)
 
 	if payResult {
 		o.OrderStatus = Processing
